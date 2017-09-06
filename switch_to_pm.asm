@@ -25,3 +25,4 @@ mov gs , ax
 mov ebp , 0x90000 ; Update our stack position so it is right
 mov esp , ebp ; at the top of the free space.
 call BEGIN_PM ; Finally , call some well - known label
+%include "gdt.asm"
