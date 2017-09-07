@@ -1,0 +1,413 @@
+	.file	"kernel.c"
+	.text
+	.align 16
+	.globl	strlen
+	.type	strlen, @function
+strlen:
+.LFB2:
+	movl	4(%esp), %edx
+	xorl	%eax, %eax
+	cmpb	$0, (%edx)
+	je	.L4
+	.align 16
+.L3:
+	addl	$1, %eax
+	cmpb	$0, (%edx,%eax)
+	jne	.L3
+	rep; ret
+	.align 16
+.L4:
+	rep; ret
+.LFE2:
+	.size	strlen, .-strlen
+	.align 16
+	.globl	terminal_initialize
+	.type	terminal_initialize, @function
+terminal_initialize:
+.LFB3:
+	movl	$0, terminal_row
+	movl	$0, terminal_column
+	movl	$753664, %eax
+	movb	$7, terminal_color
+	movl	$753664, terminal_buffer
+	.align 16
+.L8:
+	leal	160(%eax), %edx
+	.align 16
+.L9:
+	movl	$32, %ecx
+	addl	$2, %eax
+	movw	%cx, -2(%eax)
+	cmpl	%eax, %edx
+	jne	.L9
+	cmpl	$757664, %edx
+	jne	.L8
+	rep; ret
+.LFE3:
+	.size	terminal_initialize, .-terminal_initialize
+	.align 16
+	.globl	terminal_setcolor
+	.type	terminal_setcolor, @function
+terminal_setcolor:
+.LFB4:
+	movl	4(%esp), %eax
+	movb	%al, terminal_color
+	ret
+.LFE4:
+	.size	terminal_setcolor, .-terminal_setcolor
+	.align 16
+	.globl	terminal_putentryat
+	.type	terminal_putentryat, @function
+terminal_putentryat:
+.LFB5:
+	movl	16(%esp), %eax
+	movzbl	4(%esp), %ecx
+	movl	terminal_buffer, %edx
+	leal	(%eax,%eax,4), %eax
+	sall	$4, %eax
+	addl	12(%esp), %eax
+	movw	%cx, (%edx,%eax,2)
+	ret
+.LFE5:
+	.size	terminal_putentryat, .-terminal_putentryat
+	.align 16
+	.globl	terminal_putchar
+	.type	terminal_putchar, @function
+terminal_putchar:
+.LFB6:
+	movl	terminal_row, %ecx
+	movl	terminal_column, %edx
+	pushl	%esi
+.LCFI0:
+	pushl	%ebx
+.LCFI1:
+	movzbl	12(%esp), %ebx
+	movl	terminal_buffer, %esi
+	leal	(%ecx,%ecx,4), %eax
+	sall	$4, %eax
+	addl	%edx, %eax
+	addl	$1, %edx
+	cmpl	$80, %edx
+	movw	%bx, (%esi,%eax,2)
+	je	.L15
+	popl	%ebx
+.LCFI2:
+	movl	%edx, terminal_column
+	popl	%esi
+.LCFI3:
+	ret
+	.align 16
+.L15:
+.LCFI4:
+	addl	$1, %ecx
+	movl	$0, %eax
+	movl	$0, terminal_column
+	cmpl	$25, %ecx
+	cmove	%eax, %ecx
+	popl	%ebx
+.LCFI5:
+	movl	%ecx, terminal_row
+	popl	%esi
+.LCFI6:
+	ret
+.LFE6:
+	.size	terminal_putchar, .-terminal_putchar
+	.align 16
+	.globl	terminal_write
+	.type	terminal_write, @function
+terminal_write:
+.LFB7:
+	pushl	%esi
+.LCFI7:
+	pushl	%ebx
+.LCFI8:
+	movl	16(%esp), %esi
+	testl	%esi, %esi
+	je	.L20
+	movl	12(%esp), %ebx
+	addl	%ebx, %esi
+	.align 16
+.L22:
+	movsbl	(%ebx), %eax
+	addl	$1, %ebx
+	pushl	%eax
+.LCFI9:
+	call	terminal_putchar
+	cmpl	%ebx, %esi
+	popl	%eax
+.LCFI10:
+	jne	.L22
+.L20:
+	popl	%ebx
+.LCFI11:
+	popl	%esi
+.LCFI12:
+	ret
+.LFE7:
+	.size	terminal_write, .-terminal_write
+	.align 16
+	.globl	terminal_writestring
+	.type	terminal_writestring, @function
+terminal_writestring:
+.LFB8:
+	pushl	%esi
+.LCFI13:
+	pushl	%ebx
+.LCFI14:
+	movl	12(%esp), %ecx
+	movsbl	(%ecx), %eax
+	testb	%al, %al
+	je	.L28
+	xorl	%edx, %edx
+	.align 16
+.L30:
+	addl	$1, %edx
+	cmpb	$0, (%ecx,%edx)
+	jne	.L30
+	leal	1(%ecx), %ebx
+	leal	(%ecx,%edx), %esi
+	jmp	.L31
+	.align 16
+.L37:
+	movsbl	(%ebx), %eax
+	addl	$1, %ebx
+.L31:
+	pushl	%eax
+.LCFI15:
+	call	terminal_putchar
+	cmpl	%ebx, %esi
+	popl	%eax
+.LCFI16:
+	jne	.L37
+.L28:
+	popl	%ebx
+.LCFI17:
+	popl	%esi
+.LCFI18:
+	ret
+.LFE8:
+	.size	terminal_writestring, .-terminal_writestring
+	.section	.rodata
+.LC0:
+	.string	"Hello, kernel World!\n"
+	.text
+	.align 16
+	.globl	kernel_main
+	.type	kernel_main, @function
+kernel_main:
+.LFB9:
+	movl	$0, terminal_row
+	movl	$0, terminal_column
+	movl	$753664, %eax
+	movb	$7, terminal_color
+	movl	$753664, terminal_buffer
+	.align 16
+.L39:
+	leal	160(%eax), %edx
+	.align 16
+.L40:
+	movl	$32, %ecx
+	addl	$2, %eax
+	movw	%cx, -2(%eax)
+	cmpl	%eax, %edx
+	jne	.L40
+	cmpl	$757664, %edx
+	jne	.L39
+	pushl	$.LC0
+.LCFI19:
+	call	terminal_writestring
+	popl	%eax
+.LCFI20:
+	ret
+.LFE9:
+	.size	kernel_main, .-kernel_main
+	.comm	terminal_buffer,4,4
+	.comm	terminal_color,1,1
+	.comm	terminal_column,4,4
+	.comm	terminal_row,4,4
+	.section	.eh_frame,"aw",@progbits
+.Lframe1:
+	.long	.LECIE1-.LSCIE1
+.LSCIE1:
+	.long	0
+	.byte	0x3
+	.string	""
+	.byte	0x1
+	.byte	0x7c
+	.byte	0x8
+	.byte	0xc
+	.byte	0x4
+	.byte	0x4
+	.byte	0x88
+	.byte	0x1
+	.align 4
+.LECIE1:
+.LSFDE1:
+	.long	.LEFDE1-.LASFDE1
+.LASFDE1:
+	.long	.LASFDE1-.Lframe1
+	.long	.LFB2
+	.long	.LFE2-.LFB2
+	.align 4
+.LEFDE1:
+.LSFDE3:
+	.long	.LEFDE3-.LASFDE3
+.LASFDE3:
+	.long	.LASFDE3-.Lframe1
+	.long	.LFB3
+	.long	.LFE3-.LFB3
+	.align 4
+.LEFDE3:
+.LSFDE5:
+	.long	.LEFDE5-.LASFDE5
+.LASFDE5:
+	.long	.LASFDE5-.Lframe1
+	.long	.LFB4
+	.long	.LFE4-.LFB4
+	.align 4
+.LEFDE5:
+.LSFDE7:
+	.long	.LEFDE7-.LASFDE7
+.LASFDE7:
+	.long	.LASFDE7-.Lframe1
+	.long	.LFB5
+	.long	.LFE5-.LFB5
+	.align 4
+.LEFDE7:
+.LSFDE9:
+	.long	.LEFDE9-.LASFDE9
+.LASFDE9:
+	.long	.LASFDE9-.Lframe1
+	.long	.LFB6
+	.long	.LFE6-.LFB6
+	.byte	0x4
+	.long	.LCFI0-.LFB6
+	.byte	0xe
+	.byte	0x8
+	.byte	0x86
+	.byte	0x2
+	.byte	0x4
+	.long	.LCFI1-.LCFI0
+	.byte	0xe
+	.byte	0xc
+	.byte	0x83
+	.byte	0x3
+	.byte	0x4
+	.long	.LCFI2-.LCFI1
+	.byte	0xa
+	.byte	0xc3
+	.byte	0xe
+	.byte	0x8
+	.byte	0x4
+	.long	.LCFI3-.LCFI2
+	.byte	0xc6
+	.byte	0xe
+	.byte	0x4
+	.byte	0x4
+	.long	.LCFI4-.LCFI3
+	.byte	0xb
+	.byte	0x4
+	.long	.LCFI5-.LCFI4
+	.byte	0xc3
+	.byte	0xe
+	.byte	0x8
+	.byte	0x4
+	.long	.LCFI6-.LCFI5
+	.byte	0xc6
+	.byte	0xe
+	.byte	0x4
+	.align 4
+.LEFDE9:
+.LSFDE11:
+	.long	.LEFDE11-.LASFDE11
+.LASFDE11:
+	.long	.LASFDE11-.Lframe1
+	.long	.LFB7
+	.long	.LFE7-.LFB7
+	.byte	0x4
+	.long	.LCFI7-.LFB7
+	.byte	0xe
+	.byte	0x8
+	.byte	0x86
+	.byte	0x2
+	.byte	0x4
+	.long	.LCFI8-.LCFI7
+	.byte	0xe
+	.byte	0xc
+	.byte	0x83
+	.byte	0x3
+	.byte	0x4
+	.long	.LCFI9-.LCFI8
+	.byte	0xe
+	.byte	0x10
+	.byte	0x4
+	.long	.LCFI10-.LCFI9
+	.byte	0xe
+	.byte	0xc
+	.byte	0x4
+	.long	.LCFI11-.LCFI10
+	.byte	0xc3
+	.byte	0xe
+	.byte	0x8
+	.byte	0x4
+	.long	.LCFI12-.LCFI11
+	.byte	0xc6
+	.byte	0xe
+	.byte	0x4
+	.align 4
+.LEFDE11:
+.LSFDE13:
+	.long	.LEFDE13-.LASFDE13
+.LASFDE13:
+	.long	.LASFDE13-.Lframe1
+	.long	.LFB8
+	.long	.LFE8-.LFB8
+	.byte	0x4
+	.long	.LCFI13-.LFB8
+	.byte	0xe
+	.byte	0x8
+	.byte	0x86
+	.byte	0x2
+	.byte	0x4
+	.long	.LCFI14-.LCFI13
+	.byte	0xe
+	.byte	0xc
+	.byte	0x83
+	.byte	0x3
+	.byte	0x4
+	.long	.LCFI15-.LCFI14
+	.byte	0xe
+	.byte	0x10
+	.byte	0x4
+	.long	.LCFI16-.LCFI15
+	.byte	0xe
+	.byte	0xc
+	.byte	0x4
+	.long	.LCFI17-.LCFI16
+	.byte	0xc3
+	.byte	0xe
+	.byte	0x8
+	.byte	0x4
+	.long	.LCFI18-.LCFI17
+	.byte	0xc6
+	.byte	0xe
+	.byte	0x4
+	.align 4
+.LEFDE13:
+.LSFDE15:
+	.long	.LEFDE15-.LASFDE15
+.LASFDE15:
+	.long	.LASFDE15-.Lframe1
+	.long	.LFB9
+	.long	.LFE9-.LFB9
+	.byte	0x4
+	.long	.LCFI19-.LFB9
+	.byte	0xe
+	.byte	0x8
+	.byte	0x4
+	.long	.LCFI20-.LCFI19
+	.byte	0xe
+	.byte	0x4
+	.align 4
+.LEFDE15:
+	.ident	"GCC: (GNU) 7.2.0"
