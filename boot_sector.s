@@ -27,10 +27,10 @@ mov dh ,15 ; that we load the first 15 sectors ( excluding
 mov dl ,[ BOOT_DRIVE ] ; the boot sector ) from the boot disk ( i.e. our
 call disk_load ; kernel code ) to address KERNEL_OFFSET
 ret
-[ bits 32]
+[bits 32]
 ; This is where we arrive after switching to and initialising protected mode.
-BEGIN_PM :
-mov ebx , MSG_PROT_MODE ; Use our 32 - bit print routine to
+BEGIN_PM:
+mov ebx, MSG_PROT_MODE ; Use our 32 - bit print routine to
 call print_string_pm ; announce we are in protected mode
 call KERNEL_OFFSET ; Now jump to the address of our loaded
 ; kernel code , assume the brace position ,
